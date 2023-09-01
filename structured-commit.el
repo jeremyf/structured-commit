@@ -74,7 +74,7 @@ for details about angular commit structure."
            (summary
             (read-from-minibuffer "Summary: ")))
       (structured-commit/save-scope project scope)
-      (insert (format "%s(%s): %s\n\n" type scope summary))))
+      (insert (format "%s(%s): %s\n" type scope summary))))
 
 (defun structured-commit/create-schema ()
   "Create the DB schema."
