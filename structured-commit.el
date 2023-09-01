@@ -62,20 +62,20 @@ See https://gist.github.com/brianclements/841ea7bffdb01346392c
 for details about angular commit structure."
   (interactive)
   (setq-local structured-commit-added-p nil)
-  (let* ((project (structured-commit/project))
-           (type
-            (completing-read
-             "Commit type: "
-             (structured-commit/all-types)))
-           (scope
-            (completing-read
-             "Commit scope: "
-             (structured-commit/scopes-for-project project)))
-           (summary
-            (read-from-minibuffer "Summary: ")))
-    (structured-commit/save-scope project scope)
-    (insert (format "%s(%s): %s\n\n" type scope summary))
-    (setq-local structured-commit-added-p t)))
+  (let ((summary (read-from-minibuffer "Summary (empty to omit): ")))
+    (when (not (equal "" summary))
+      (let* ((project (structured-commit/project))
+             (type
+              (completing-read
+               "Commit type: "
+               (structured-commit/all-types)))
+             (scope
+              (completing-read
+               "Commit scope: "
+               (structured-commit/scopes-for-project project))))
+        (structured-commit/save-scope project scope)
+        (insert (format "%s(%s): %s\n\n" type scope summary))
+        (setq-local structured-commit-added-p t)))))
 
 (defun structured-commit/post-git-commit-setup-advice ()
   "Toggle set-buffer-modified-p if structed comment has been added.
