@@ -24,7 +24,6 @@
 ;;               :repo "bunnylushington/structured-commit")
 ;;   :hook (git-commit-setup . structured-commit/write-message))
 
-
 (defvar structured-commit/scope-cache
   (expand-file-name "structured-commit.db" user-emacs-directory)
   "DB to cache commit scopes.")
@@ -61,8 +60,9 @@ magit-buffer-name-format."
 
 See https://gist.github.com/brianclements/841ea7bffdb01346392c
 for details about angular commit structure."
-    (interactive)
-    (let* ((project (structured-commit/project))
+  (interactive)
+  (setq-local structured-commit-added-p nil)
+  (let* ((project (structured-commit/project))
            (type
             (completing-read
              "Commit type: "
@@ -73,8 +73,22 @@ for details about angular commit structure."
              (structured-commit/scopes-for-project project)))
            (summary
             (read-from-minibuffer "Summary: ")))
-      (structured-commit/save-scope project scope)
-      (insert (format "%s(%s): %s\n" type scope summary))))
+    (structured-commit/save-scope project scope)
+    (insert (format "%s(%s): %s\n\n" type scope summary))
+    (setq-local structured-commit-added-p t)))
+
+(defun structured-commit/post-git-commit-setup-advice ()
+  "Toggle set-buffer-modified-p if structed comment has been added.
+
+This is necessary because the `git-commit-setup-hook' runs before
+the buffer modified flag is set to nil.  We want the option of
+having the structured comment be the only comment text without
+the user having to type extraneous characters."
+  (when structured-commit-added-p
+    (set-buffer-modified-p t)))
+
+(advice-add 'git-commit-setup :after
+            #'structured-commit/post-git-commit-setup-advice)
 
 (defun structured-commit/create-schema ()
   "Create the DB schema."
