@@ -31,6 +31,11 @@
 (defvar structured-commit/db nil
   "Sqlite database object.")
 
+(defvar structured-commit-added-p nil)
+
+(defvar structured-commit-ignore-commit-setup-advice nil
+  "When non-nil ignore the commit setup hook advice.")
+
 (defun structured-commit/database ()
     "Return an open database object."
     (when (or (not (file-exists-p structured-commit/scope-cache))
@@ -84,7 +89,8 @@ This is necessary because the `git-commit-setup-hook' runs before
 the buffer modified flag is set to nil.  We want the option of
 having the structured comment be the only comment text without
 the user having to type extraneous characters."
-  (when structured-commit-added-p
+  (when (and (not structured-commit-ignore-commit-setup-advice)
+	     structured-commit-added-p)
     (set-buffer-modified-p t)))
 
 (advice-add 'git-commit-setup :after
